@@ -10,7 +10,9 @@ import cc.jmpesp.lib.User;
 import cc.jmpesp.lib.*;
 
 public class ServerThread extends Thread {
-	Socket socket = null;
+	private Socket socket = null;
+	//private String username;
+	private Integer uid = null;
 
 	public ServerThread(Socket socket) {
 		this.socket = socket;
@@ -41,7 +43,11 @@ public class ServerThread extends Thread {
 		boolean flag = false;
 		switch (cr.getCommand()) {
 		case "login":
-			flag = dbt.login(user);
+			uid = dbt.login(user);
+			if(uid != null) {
+				cr.setUserId(this.uid);
+				flag = true;
+			} else flag = false;
 			break;
 		case "register":
 			flag = dbt.register(user);

@@ -8,7 +8,7 @@ import java.sql.SQLException;
 
 public class DBUtil {
 	private static final String DRIVER = "com.mysql.jdbc.Driver";
-	private static final String URL = "jdbc:mysql://localhost:3306/FileUpload?useSSL=true";
+	private static final String URL = "jdbc:mysql://localhost:3306/lordalbum?useSSL=true";
 	private static final String NAME = "root";
 	private static final String PASSWORD = "root";
 

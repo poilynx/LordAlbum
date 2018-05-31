@@ -4,9 +4,9 @@ import java.io.Serializable;
 
 @SuppressWarnings("serial")
 public class FileEntity implements Serializable {
-	private String username;
-	private String fileName;
+	private int uid;
 	private int id;
+	private String fileName;
 	private byte[] fileContent;
 
 	public FileEntity(int id, String fileName) {
@@ -26,12 +26,12 @@ public class FileEntity implements Serializable {
 		this.id = id;
 	}
 
-	public String getUsername() {
-		return username;
+	public int getUserId() {
+		return uid;
 	}
 
-	public void setUsername(String username) {
-		this.username = username;
+	public void setUserId(int uid) {
+		this.uid= uid;
 	}
 
 	public String getFileName() {

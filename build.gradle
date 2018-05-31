@@ -19,6 +19,22 @@ sourceSets {
     }
 }
 
+dependencies {
+	//runtime files ('mysql-connector-java-5.1.38-bin.jar')
+	//classpath ("mysql:mysql-connector-java:5.1.24")
+}
+//compile ("mysql:mysql-connector-java:5.1.24")
+buildscript {
+	println "hello"
+	repositories {
+		mavenCentral()
+	}
+	dependencies {
+		'mysql:mysql-connector-java:5.1.16'
+	} 
+}
+
+
 buildDir = 'bin' //default 'build'
 
 task client(type: Jar) {  
@@ -37,16 +53,26 @@ task client(type: Jar) {
 client.dependsOn(compileJava)
 
 task server(type: Jar) {  
+
 	archiveName = 'server.jar'
     //destinationDir = file('bin/libs/')  
+
 	manifest {
+		attributes 'Manifest-Version': '1.0'
 		attributes 'Main-Class': 'cc.jmpesp.server.Server'
+		attributes 'Class-Path': 'lib/mysql-connector-java-5.1.38-bin.jar'
 	}
+
 	into ('cc/jmpesp/server/') {
 		from "${buildDir}/classes/java/main/cc/jmpesp/server/" 
 	}
+
 	into ('cc/jmpesp/lib/') {
 		from "${buildDir}/classes/java/main/cc/jmpesp/lib/"
+	}
+
+	into ('') {
+		from zipTree("lib/mysql-connector-java-5.1.38-bin.jar")
 	}
 }  
 server.dependsOn(compileJava)

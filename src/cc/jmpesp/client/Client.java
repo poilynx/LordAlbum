@@ -12,7 +12,7 @@ import java.util.Scanner;
 import cc.jmpesp.lib.*;
 
 public class Client {
-	String username = null;
+	Integer uid = null;
 	String password = null;
 	Socket socket = null;
 	User user = new User();
@@ -43,6 +43,7 @@ public class Client {
 	public void login() throws Exception {
 		System.out.println("*********开始登陆帐号***********");
 		int count = 0;
+		String username = null;
 		CommandRelay cr = new CommandRelay();
 		while (true) {
 			System.out.print("请输入帐号: ");
@@ -61,6 +62,7 @@ public class Client {
 			sendData(cr);
 			cr = getData();
 			if (cr.isFlag()) {
+				this.uid = cr.getUserId();
 				break;
 			} else {
 				System.out.println("帐号或密码输入错误,请重新输入!");
@@ -77,6 +79,7 @@ public class Client {
 	public void register() throws Exception {
 		System.out.println("**********开始注册帐号**********");
 		String confirm = null;
+		String username = null;
 		CommandRelay cr = new CommandRelay();
 		while (true) {
 			System.out.print("请输入帐号: ");
@@ -155,7 +158,7 @@ public class Client {
 		BufferedInputStream bis = new BufferedInputStream(fis);
 		bis.read(fileBytes);
 		FileEntity fe = new FileEntity();
-		fe.setUsername(username);
+		fe.setUserId(uid);
 		fe.setFileName(filename);
 		fe.setFileContent(fileBytes);
 		CommandRelay cr = new CommandRelay();
@@ -179,7 +182,7 @@ public class Client {
 	public void view() throws Exception {
 		System.out.println("***********查看文件************");
 		FileEntity fe = new FileEntity();
-		fe.setUsername(username);
+		fe.setUserId(this.uid);
 		CommandRelay cr = new CommandRelay();
 		cr.setCommand("view");
 		cr.setFileObject(fe);

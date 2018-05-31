@@ -1,0 +1,160 @@
+package cc.jmpesp.server;
+
+import cc.jmpesp.lib.*;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.File;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.UUID;
+
+import cc.jmpesp.lib.User;
+
+public class DBTools {
+	DBUtil dbu = new DBUtil();
+	Connection con = dbu.getConnection();
+
+	/*
+	 * 用户登录
+	 */
+	public boolean login(User user) throws Exception {
+		String sql = "select * from user where username = ? and password = ?";
+		PreparedStatement ps = con.prepareStatement(sql);
+		ps.setString(1, user.getUsername());
+		ps.setString(2, user.getPassword());
+		ResultSet rs = ps.executeQuery();
+		if (rs.next()) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	/*
+	 * 用户注册
+	 */
+	public boolean register(User user) {
+		String sql = "insert into user(username,password) value(?,?)";
+		try {
+			PreparedStatement ps = con.prepareStatement(sql);
+			ps.setString(1, user.getUsername());
+			ps.setString(2, user.getPassword());
+			ps.executeUpdate();
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return false;
+		}
+		return true;
+	}
+
+	/*
+	 * 上传文件
+	 */
+	public boolean uploadFile(FileEntity fe) {
+		String sql = "insert into image(user_id,filename,path) VALUES(?,?,?)";
+		String path = saveFile(fe.getFileContent());
+		try {
+			PreparedStatement ps = con.prepareStatement(sql);
+			ps.setInt(1, fe.getId());
+			ps.setString(2, fe.getFileName());
+			ps.setString(3, path);
+			ps.executeUpdate();
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return false;
+		}
+		return true;
+	}
+
+	/*
+	 * 下载文件
+	 */
+	public byte[] downloadFile(FileEntity fe) throws Exception {
+		String sql = "select path from file where id = ?";
+		PreparedStatement ps = con.prepareStatement(sql);
+		ps.setInt(1, fe.getId());
+		ResultSet rs = ps.executeQuery();
+		FileInputStream is = null;
+		if (rs.next()) {
+			String path = rs.getString(1);
+			return loadFile(path);
+		}
+		return null;
+	}
+
+	/*
+	 * 查看文件
+	 */
+	public ArrayList<FileEntity> viewFile(FileEntity fe) throws Exception {
+		ArrayList<FileEntity> fileList = new ArrayList<>();
+		String sql = "select idfile,filename from file where username= ? ";
+		PreparedStatement ps = con.prepareStatement(sql);
+		ps.setString(1, fe.getUsername());
+		ResultSet rs = ps.executeQuery();
+		while (rs.next()) {
+			fileList.add(new FileEntity(rs.getInt(1), rs.getString(2)));
+		}
+		return fileList;
+	}
+
+	/*
+	 * 删除文件
+	 */
+	public boolean deleteFile(FileEntity fe) throws Exception {
+		String sql;
+		sql = "select path from image where id = ?";
+		PreparedStatement ps = con.prepareStatement(sql);
+		ps.setInt(1, fe.getId());
+		ResultSet rs = ps.executeQuery();
+		if(!rs.next()) return false;
+		String path = rs.getString(1);
+		File f = new File(path);
+		if(f.exists()) f.delete();
+
+		sql = "delete from image where id = ?";
+		ps = con.prepareStatement(sql);
+		ps.setInt(1, fe.getId());
+		ps.execute();
+		if (ps.getUpdateCount() > 0) {
+			return true;
+		}
+		return false;
+	}
+
+	public byte[] loadFile(String path) {
+		try {
+			File f = new File(path);
+			byte[] fileContent = new byte[(int)f.length()];
+			FileInputStream in = new FileInputStream(f);
+			in.read(fileContent);
+			in.close();
+			return fileContent;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	public String saveFile(byte[]content) {
+		String filename= null;
+		try {
+			UUID uuid = UUID.randomUUID();
+			filename = "files/" + uuid;
+			System.out.println(filename);
+			File f = new File(filename);
+			f.createNewFile();
+			FileOutputStream out = new FileOutputStream(f);
+			out.write(content);
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+		return path;
+	}
+}
