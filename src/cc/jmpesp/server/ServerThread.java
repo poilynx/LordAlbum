@@ -1,6 +1,7 @@
 package cc.jmpesp.server;
 
 import java.io.IOException;
+import java.io.EOFException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
@@ -20,18 +21,24 @@ public class ServerThread extends Thread {
 
 	public void run() {
 		try {
-			ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
-			ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
-			CommandRelay cr = (CommandRelay) ois.readObject();
-			try {
-				cr = inquire(cr);
-				oos.writeObject(cr);
-			} catch (Exception e) {
-				e.printStackTrace();
+			while(true) {
+				ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
+				ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+				CommandRelay cr = (CommandRelay) ois.readObject();
+				try {
+					cr = inquire(cr);
+					oos.writeObject(cr);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
 			}
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
+		} catch (EOFException e) {
+			System.out.println("[!] 连接断开");
 		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
