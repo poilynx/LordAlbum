@@ -106,10 +106,11 @@ public class DBTools {
 	/*
 	 * 删除文件
 	 */
-	public boolean deleteFile(FileEntity fe) throws Exception {
-		String sql = "delete from file where id = ?";
+	public boolean deleteFile(FileEntity fe, int uid) throws Exception {
+		String sql = "delete from file where id = ? and user_id = ?";
 		PreparedStatement ps = con.prepareStatement(sql);
 		ps.setInt(1, fe.getId());
+		ps.setInt(2, uid);
 		ps.execute();
 		if (ps.getUpdateCount() > 0) {
 			return true;

@@ -3,9 +3,6 @@ import java.awt.*;
 import javax.swing.*;
 
 public class Test extends JFrame {
-/**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
 	// 定义一个类继承JFrame类
 	public Test () { // 定义一个CreateJFrame()方法

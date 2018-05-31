@@ -55,7 +55,7 @@ public class Client {
 			user.setPassword(input.next());
 			count++;
 			if (count == 3) {
-				System.out.println("密码错误3次,退出系统!");
+				System.out.println("[!] 密码错误3次,再见");
 				System.exit(0);
 			}
 			cr.setCommand("login");
@@ -67,11 +67,11 @@ public class Client {
 				this.uid = cr.getUserId();
 				break;
 			} else {
-				System.out.println("帐号或密码输入错误,请重新输入!");
+				System.out.println("[!] 帐号或密码错误");
 				continue;
 			}
 		}
-		System.out.println("登陆成功,进入文件上传下载器!");
+		System.out.println("[*] 登陆成功");
 		fileMain();
 	}
 
@@ -90,7 +90,7 @@ public class Client {
 			System.out.print("请再次输入密码: ");
 			confirm = input.next();
 			if (!password.equals(confirm)) {
-				System.out.println("两次密码不一致,请重新输入!");
+				System.out.println("[*] 两次密码不一致");
 				continue;
 			}
 			user.setUsername(username);
@@ -103,11 +103,11 @@ public class Client {
 			if (cr.isFlag()) {
 				break;
 			} else {
-				System.out.println("注册失败,请重新注册!");
+				System.out.println("[!] 注册失败");
 				continue;
 			}
 		}
-		System.out.println("注册成功请登陆!");
+		System.out.println("[*] 注册成功!");
 		login();
 	}
 
@@ -115,7 +115,7 @@ public class Client {
 	 * 文件上传下载界面
 	 */
 	public void fileMain() throws Exception {
-		System.out.print("1.上传 2.下载 3.查看 4.删除 5.退出");
+		System.out.println("1.上传 2.下载 3.查看 4.删除 5.退出");
 		String flag = null;
 		while (true) {
 			System.out.print("请输入: ");
@@ -134,7 +134,7 @@ public class Client {
 				delete();
 				break;
 			case "5":
-				System.out.println("欢迎下次使用,再见!");
+				System.out.println("再见!");
 				System.exit(0);
 				break;
 			default:
@@ -168,10 +168,10 @@ public class Client {
 		sendData(cr);
 		cr = getData();
 		if (cr.isFlag()) {
-			System.out.println("上传成功,返回主界面!");
+			System.out.println("[*] 上传成功,返回主界面!");
 			fileMain();
 		} else {
-			System.out.println("上传失败,请重新上传!");
+			System.out.println("[!] 上传失败,请重新上传!");
 		}
 		close();
 	}

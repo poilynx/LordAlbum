@@ -60,9 +60,11 @@ public class ServerThread extends Thread {
 			flag = dbt.register(user);
 			break;
 		case "upload":
+			if(this.uid == null) break;
 			flag = dbt.uploadFile(fe);
 			break;
 		case "view":
+			if(this.uid == null) break;
 			ArrayList<FileEntity> fileList = dbt.viewFile(fe);
 			if (!fileList.isEmpty()) {
 				flag = true;
@@ -70,6 +72,8 @@ public class ServerThread extends Thread {
 			}
 			break;
 		case "download":
+			if(this.uid == null) break;
+			if(fe.getUserId() != this.uid) break;
 			byte[] bytes = dbt.downloadFile(fe);
 			if (bytes != null) {
 				flag = true;
@@ -77,7 +81,13 @@ public class ServerThread extends Thread {
 			}
 			break;
 		case "delete":
-			flag = dbt.deleteFile(fe);
+			if(this.uid == null) break;
+			System.out.println("m1");
+			System.out.println(fe.getUserId());
+			System.out.println(this.uid);
+			if(fe.getUserId() != this.uid) break;
+			System.out.println("m2");
+			flag = dbt.deleteFile(fe, this.uid);
 			break;
 		default:
 			break;
