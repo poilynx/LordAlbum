@@ -139,14 +139,7 @@ public class Client {
 				view();
 				break;
 			case "4":
-
-				try {
-					open();
-				} catch (Exception e) {
-					e.printStackTrace();
-					return;
-				}   
-
+				open();
 				break;
 			case "5":
 				delete();
@@ -163,7 +156,7 @@ public class Client {
 	}
 	
 	/*
-	 * 文件下载
+	 * 打开图片
 	 */
 	@SuppressWarnings("resource")
 	private void open() throws Exception {
@@ -195,7 +188,7 @@ public class Client {
 	 */
 	@SuppressWarnings("resource")
 	private void upload() throws Exception {
-		System.out.println("待上传文件位置(如 ~/Picture/foo.jpg):");
+		System.out.print("图片路径:");
 		String path = input.next();
 		String fileName = path.substring(path.lastIndexOf('/') + 1);
 		String suffix = fileName.substring(fileName.lastIndexOf(".") + 1);
@@ -262,10 +255,10 @@ public class Client {
 	 */
 	@SuppressWarnings("resource")
 	private void download() throws Exception {
-		System.out.print("请输入要下载文件的编号:");
+		System.out.print("请输入要下载照片的编号:");
 		FileEntity fe = new FileEntity();
 		fe.setId(input.nextInt());
-		System.out.println("本地路径:");
+		System.out.print("保存路径:");
 		String fileName = input.next();
 		CommandRelay cr = new CommandRelay();
 		cr.setCommand("download");
