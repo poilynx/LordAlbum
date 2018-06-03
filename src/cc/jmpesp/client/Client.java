@@ -9,23 +9,32 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Scanner;
+import java.util.UUID;
+
 import cc.jmpesp.lib.*;
 
 public class Client {
 	Integer uid = null;
 	String password = null;
-	public Socket socket = null;
+	Socket socket = null;
 	User user = new User();
 	FileEntity fe = null;
-	Scanner input = new Scanner(System.in);
+	private Scanner input = null;
+	String host;
+	short port;
 
 
+	public Client(String host, short port) {
+		this.host = host;
+		this.port = port;
+		this.input = new Scanner(System.in);
+	}
 	
 
 	/*
 	 * 发送对象
 	 */
-	public void sendData(CommandRelay cr) throws Exception {
+	private void sendData(CommandRelay cr) throws Exception {
 		ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
 		oos.writeObject(cr);
 		oos.flush();
@@ -34,7 +43,7 @@ public class Client {
 	/*
 	 * 接收对象
 	 */
-	public CommandRelay getData() throws Exception {
+	private CommandRelay getData() throws Exception {
 		ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
 		CommandRelay cr = (CommandRelay) ois.readObject();
 		return cr;
@@ -43,7 +52,7 @@ public class Client {
 	/*
 	 * 用户登陆
 	 */
-	public void login() throws Exception {
+	private void login() throws Exception {
 		int count = 0;
 		String username = null;
 		CommandRelay cr = new CommandRelay();
@@ -78,7 +87,7 @@ public class Client {
 	/*
 	 * 用户注册
 	 */
-	public void register() throws Exception {
+	private void register() throws Exception {
 		String confirm = null;
 		String username = null;
 		CommandRelay cr = new CommandRelay();
@@ -114,11 +123,10 @@ public class Client {
 	/*
 	 * 文件上传下载界面
 	 */
-	public void fileMain() throws Exception {
-		System.out.println("1.上传 2.下载 3.查看 4.删除 5.退出");
+	private void fileMain() throws Exception {
 		String flag = null;
 		while (true) {
-			System.out.print("请输入: ");
+			System.out.print("\n[1.上传 2.下载 3.查看相册 4.打开图片 5.删除 6.退出]: ");
 			flag = input.next();
 			switch (flag) {
 			case "1":
@@ -131,9 +139,19 @@ public class Client {
 				view();
 				break;
 			case "4":
-				delete();
+
+				try {
+					open();
+				} catch (Exception e) {
+					e.printStackTrace();
+					return;
+				}   
+
 				break;
 			case "5":
+				delete();
+				break;
+			case "6":
 				System.out.println("再见!");
 				System.exit(0);
 				break;
@@ -141,45 +159,81 @@ public class Client {
 				System.out.println("[!] 输入不正确");
 				continue;
 			}
-			break;
 		}
+	}
+	
+	/*
+	 * 文件下载
+	 */
+	@SuppressWarnings("resource")
+	private void open() throws Exception {
+		System.out.print("图片的编号:");
+		FileEntity fe = new FileEntity();
+		fe.setId(input.nextInt());
+		String folder=System.getProperty("java.io.tmpdir");
+		String fileName = folder + "/" + UUID.randomUUID();
+		CommandRelay cr = new CommandRelay();
+		cr.setCommand("download");
+		cr.setFileObject(fe);
+		sendData(cr);
+		cr = getData();
+		if (cr.isFlag()) {
+			byte[] bytes = cr.getBytes();
+			FileOutputStream out = new FileOutputStream(fileName);
+			out.write(bytes);
+			Viewer viewer = new Viewer(fileName);
+			viewer.setVisible(true);
+		} else {
+			System.out.println("[!] 下载失败,找不到");
+		}
+		//fileMain();
+		//close();
 	}
 
 	/*
 	 * 文件上传
 	 */
 	@SuppressWarnings("resource")
-	public void upload() throws Exception {
+	private void upload() throws Exception {
 		System.out.println("待上传文件位置(如 ~/Picture/foo.jpg):");
 		String path = input.next();
-		String filename = path.substring(path.lastIndexOf('/') + 1);
+		String fileName = path.substring(path.lastIndexOf('/') + 1);
+		String suffix = fileName.substring(fileName.lastIndexOf(".") + 1);
+		switch(suffix) {
+			case "jpeg":
+			case "gif":
+			case "jpg":
+			case "png":
+				break;
+			default:
+				System.out.println("[!] 不支持的文件格式 `" + suffix + "'");
+				return;
+		}
+		
 		FileInputStream fis = new FileInputStream(path);
 		byte[] fileBytes = new byte[fis.available()];
 		BufferedInputStream bis = new BufferedInputStream(fis);
 		bis.read(fileBytes);
 		FileEntity fe = new FileEntity();
 		fe.setUserId(uid);
-		fe.setFileName(filename);
+		fe.setFileName(fileName);
 		fe.setFileContent(fileBytes);
 		CommandRelay cr = new CommandRelay();
 		cr.setCommand("upload");
 		cr.setFileObject(fe);
-		//socket = new Socket("localhost", 8722);
 		sendData(cr);
 		cr = getData();
 		if (cr.isFlag()) {
-			System.out.println("[*] 上传成功,返回主界面!");
-			fileMain();
+			System.out.println("[*] 上传成功");
 		} else {
-			System.out.println("[!] 上传失败,请重新上传!");
+			System.out.println("[!] 上传失败");
 		}
-		close();
 	}
 
 	/*
 	 * 文件查看
 	 */
-	public void view() throws Exception {
+	private void view() throws Exception {
 		FileEntity fe = new FileEntity();
 		fe.setUserId(this.uid);
 		//fe.setUserId(this.uid);
@@ -198,20 +252,21 @@ public class Client {
 		} else {
 			System.out.println("[*] 无文件");
 		}
-		fileMain();
-		close();
+		//fileMain();
+		//close();
 	}
+
 
 	/*
 	 * 文件下载
 	 */
 	@SuppressWarnings("resource")
-	public void download() throws Exception {
+	private void download() throws Exception {
 		System.out.print("请输入要下载文件的编号:");
 		FileEntity fe = new FileEntity();
 		fe.setId(input.nextInt());
 		System.out.println("本地路径:");
-		String filename = input.next();
+		String fileName = input.next();
 		CommandRelay cr = new CommandRelay();
 		cr.setCommand("download");
 		cr.setFileObject(fe);
@@ -220,20 +275,20 @@ public class Client {
 		cr = getData();
 		if (cr.isFlag()) {
 			byte[] bytes = cr.getBytes();
-			FileOutputStream out = new FileOutputStream(filename);
+			FileOutputStream out = new FileOutputStream(fileName);
 			out.write(bytes);
 			System.out.println("[*] 下载成功");
 		} else {
 			System.out.println("[!] 下载失败,找不到");
 		}
-		fileMain();
-		close();
+		//fileMain();
+		//close();
 	}
 
 	/*
 	 * 删除文件
 	 */
-	public void delete() throws Exception {
+	private void delete() throws Exception {
 		System.out.print("删除文件的编号:");
 		FileEntity fe = new FileEntity();
 		fe.setId(input.nextInt());
@@ -248,28 +303,27 @@ public class Client {
 		} else {
 			System.out.println("[!]删除失败,没有此文件!");
 		}
-		fileMain();
-		close();
+		//fileMain();
+		//close();
 	}
 
 	/*
 	 * 关闭资源
 	 */
-	public void close() {
-		input.close();
-		try {
-			if (socket != null) {
-				socket.close();
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
+//	public void close() {
+//		input.close();
+//		try {
+//			if (socket != null) {
+//				socket.close();
+//			}
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//		}
+//	}
 
-	public static void main(String[] args) throws Exception {
-		Client client = new Client();
+	public void start() throws Exception {
 		try {
-			client.socket = new Socket("localhost", 8722);
+			this.socket = new Socket(host, port);
 		} catch(Exception e) {
 			System.out.println("[!] 与服务器连接失败");
 			return;
@@ -277,24 +331,34 @@ public class Client {
 		System.out.println("*** Lord Album ***");
 		String flag = null;
 		while (true) {
-			System.out.print("[1.登陆 2.注册 3.退出]\n请输入: ");
-			flag = client.input.next();
-			switch (flag) {
-			case "1":
-				client.login();
+			try {
+				System.out.print("\n[1.登陆 2.注册 3.退出] : ");
+				flag = this.input.next();
+				switch (flag) {
+				case "1":
+					this.login();
+					break;
+				case "2":
+					this.register();
+					break;
+				case "3":
+					input.close();
+					socket.close();
+					System.out.println("Bye!");
+					return;
+				default:
+					System.out.println("[!]输入指令不正确,请重新输入");
+					continue;
+				}
 				break;
-			case "2":
-				client.register();
-				break;
-			case "3":
-				System.out.println("Bye!");
-				System.exit(0);
-				break;
-			default:
-				System.out.println("[!]输入指令不正确,请重新输入");
-				continue;
+			} catch(Exception e) {
+				System.out.println("Client:" + e);
 			}
-			break;
 		}
+	}
+
+	public static void main(String[] args) throws Exception {
+		Client client = new Client("localhost", (short)8722);
+		client.start();
 	}
 }

@@ -69,10 +69,10 @@ public class DBTools {
 	/*
 	 * 下载文件
 	 */
-	public byte[] downloadFile(FileEntity fe) throws Exception {
+	public byte[] downloadFile(int fileId) throws Exception {
 		String sql = "select content from file where id = ?";
 		PreparedStatement ps = con.prepareStatement(sql);
-		ps.setInt(1, fe.getId());
+		ps.setInt(1, fileId);
 		ResultSet rs = ps.executeQuery();
 		InputStream is = null;
 		if (rs.next()) {
@@ -91,11 +91,11 @@ public class DBTools {
 	/*
 	 * 查看文件
 	 */
-	public ArrayList<FileEntity> viewFile(FileEntity fe) throws Exception {
+	public ArrayList<FileEntity> viewFile(int userId) throws Exception {
 		ArrayList<FileEntity> fileList = new ArrayList<>();
 		String sql = "select id,filename from file where user_id= ? ";
 		PreparedStatement ps = con.prepareStatement(sql);
-		ps.setInt(1, fe.getUserId());
+		ps.setInt(1, userId);
 		ResultSet rs = ps.executeQuery();
 		while (rs.next()) {
 			fileList.add(new FileEntity(rs.getInt(1), rs.getString(2)));
@@ -106,15 +106,30 @@ public class DBTools {
 	/*
 	 * 删除文件
 	 */
-	public boolean deleteFile(FileEntity fe, int uid) throws Exception {
-		String sql = "delete from file where id = ? and user_id = ?";
+	public boolean deleteFile(int fileId) throws Exception {
+		String sql = "delete from file where id = ?";
 		PreparedStatement ps = con.prepareStatement(sql);
-		ps.setInt(1, fe.getId());
-		ps.setInt(2, uid);
+		ps.setInt(1, fileId);
 		ps.execute();
 		if (ps.getUpdateCount() > 0) {
 			return true;
 		}
 		return false;
+	}
+
+	/*
+	 * 获取属主
+	 */
+	public Integer getFileOwner(int fileId) throws Exception {
+		String sql = "select user_id from file where id = ?";
+		PreparedStatement ps = con.prepareStatement(sql);
+		ps.setInt(1, fileId);
+		ResultSet rs = ps.executeQuery();
+		if(rs.next()) {
+			return rs.getInt(1);
+		} else {
+			return null;
+		}
+
 	}
 }

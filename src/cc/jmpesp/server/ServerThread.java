@@ -65,7 +65,7 @@ public class ServerThread extends Thread {
 			break;
 		case "view":
 			if(this.uid == null) break;
-			ArrayList<FileEntity> fileList = dbt.viewFile(fe);
+			ArrayList<FileEntity> fileList = dbt.viewFile(this.uid);
 			if (!fileList.isEmpty()) {
 				flag = true;
 				cr.setFileList(fileList);
@@ -73,8 +73,11 @@ public class ServerThread extends Thread {
 			break;
 		case "download":
 			if(this.uid == null) break;
-			if(fe.getUserId() != this.uid) break;
-			byte[] bytes = dbt.downloadFile(fe);
+			if(dbt.getFileOwner(fe.getId()) != this.uid) {
+				cr.setErrorMessage("找不到该文件");
+				break;
+			}
+			byte[] bytes = dbt.downloadFile(fe.getId());
 			if (bytes != null) {
 				flag = true;
 				cr.setBytes(bytes);
@@ -82,12 +85,13 @@ public class ServerThread extends Thread {
 			break;
 		case "delete":
 			if(this.uid == null) break;
-			System.out.println("m1");
-			System.out.println(fe.getUserId());
-			System.out.println(this.uid);
-			if(fe.getUserId() != this.uid) break;
-			System.out.println("m2");
-			flag = dbt.deleteFile(fe, this.uid);
+			if(dbt.getFileOwner(fe.getId()) != this.uid) {
+				cr.setErrorMessage("找不到该文件");
+				break;
+			}
+			//System.out.println(fe.getUserId());
+			//System.out.println(this.uid);
+			flag = dbt.deleteFile(fe.getId());
 			break;
 		default:
 			break;
